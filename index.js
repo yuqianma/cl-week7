@@ -1,9 +1,12 @@
 const Datastore = require("nedb-promises");
 const express = require("express");
+const app = express();
+const http = require("http");
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
 
 let datastore = Datastore.create('./colors.db')
-
-const app = express();
 
 const port = 3000;
 
@@ -26,6 +29,17 @@ app.delete("/api/colors", async (req, res) => {
 	res.json({ message: "ok" });
 });
 
-app.listen(port, () => {
-	console.log(`Example app listening on port ${port}`);
+io.on('connection', (socket) => {
+  console.log('a user connected');
+	socket.on('disconnect', () => {
+    console.log('user disconnected');
+  });
+
+	socket.on('color', (msg) => {
+    socket.broadcast.emit('color', msg);
+  });
+});
+
+server.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
 });

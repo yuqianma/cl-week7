@@ -5,110 +5,74 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Colors</title>
+	<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.5.3/dist/socket.io.min.js"></script>
 <style>
 body {
 	margin: 0;
 	width: 100vw;
-}
-.dialog {
-	width: 30vw;
-	height: 30vh;
-	border-radius: 0.5rem;
-	padding: 1rem;
-	position: fixed;
-	left: 50vw;
-	top: 50vh;
-	transform: translate(-50%, -50%);
-	background-color: rgba(0, 0, 0, 0.1);
+	height: 100vh;
+	background-color: #555;
 	display: flex;
-	flex-direction:column;
 	justify-content: center;
 	align-items: center;
 }
-
-.dialog > input {
-	margin: 1rem;
-}
-
-button {
-  border-radius: 0.5rem;
-  border: 1px solid transparent;
-  padding: 0.6rem 1.2rem;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #f9f9f9;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-
 #colors-container {
-	width: 100%;
+	width: 400px;
+	height: 300px;
+	background-color: #fff;
+	font-size: 0;
 }
 #colors-container > div {
-	width: 100%;
-	height: 2vh;
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border: 0.1px solid #eee;
+	box-sizing: border-box;
 }
 </style>
 </head>
 <body>
-	<div class="dialog">
-		<h2>Color The Background</h2>
-		Choose a color:
-		<input type="color" id="color">
-		<button id="send">Send</button>
-	</div>
 	<div id="colors-container">
-		<!-- <div style="background:#646cff;"></div>
-		<div style="background:#4fe9b8;"></div>
-		<div style="background:#9f10ac;"></div> -->
 	</div>
 <script>
-const colorInput = document.querySelector('#color');
-const sendButton = document.querySelector('#send');
+const socket = io();
+const RectSize = 10;
+
 const colorsContainer = document.querySelector('#colors-container');
+const width = colorsContainer.clientWidth;
+const height = colorsContainer.clientHeight;
 
-sendButton.addEventListener('click', async () => {
-	const color = colorInput.value;
-	const response = await fetch('api/colors', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({ color })
-	});
-	// TODO handle errors
-	
-	colorInput.value = randomColor();
-	updateBackgroundColors();
-});
+const x = width / RectSize;
+const y = height / RectSize;
+console.log(x, y);
 
-colorsContainer.addEventListener('dblclick', async (event) => {
-	const response = await fetch('api/colors', {
-		method: 'DELETE',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-	});
-	// TODO handle errors
-	
-	updateBackgroundColors();
-});
-
-async function updateBackgroundColors() {
-	const response = await fetch('api/colors')
-	const json = await response.json();
-	const { data } = json;
-	// console.log(data);
-	colorsContainer.innerHTML = '';
-	data.forEach(({ color }) => {
-		const div = document.createElement('div');
-		div.style.background = color;
-		colorsContainer.appendChild(div);
-	});
+for (let i = 0; i < x; i++) {
+	for (let j = 0; j < y; j++) {
+		const rect = document.createElement('div');
+		rect.dataset.x = i;
+		rect.dataset.y = j;
+		colorsContainer.appendChild(rect);
+	}
 }
+
+function colorRect(data) {
+	const { x, y, color } = data;
+	const rect = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+	rect.style.backgroundColor = color;
+}
+
+socket.on('color', (data) => {
+	colorRect(data);
+});
+
+colorsContainer.addEventListener('click', (e) => {
+	const rect = e.target;
+	const x = rect.dataset.x;
+	const y = rect.dataset.y;
+	const data = { x, y, color: randomColor() };
+	colorRect(data);
+	socket.emit('color', data);
+});
 
 const randomColor = () => {
 	const letters = '0123456789ABCDEF';
@@ -118,9 +82,6 @@ const randomColor = () => {
 	}
 	return color;
 }
-
-colorInput.value = randomColor();
-updateBackgroundColors();
 
 </script>
 </body>
