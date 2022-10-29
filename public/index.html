@@ -4,85 +4,19 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Colors</title>
+	<title>Write A Letter</title>
 	<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.5.3/dist/socket.io.min.js"></script>
-<style>
-body {
-	margin: 0;
-	width: 100vw;
-	height: 100vh;
-	background-color: #555;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-#colors-container {
-	width: 400px;
-	height: 300px;
-	background-color: #fff;
-	font-size: 0;
-}
-#colors-container > div {
-	display: inline-block;
-	width: 10px;
-	height: 10px;
-	border: 0.1px solid #eee;
-	box-sizing: border-box;
-}
-</style>
+	<link rel="stylesheet" href="style.css">
 </head>
 <body>
-	<div id="colors-container">
+	<div id="canvas-container">
 	</div>
-<script>
-const socket = io();
-const RectSize = 10;
-
-const colorsContainer = document.querySelector('#colors-container');
-const width = colorsContainer.clientWidth;
-const height = colorsContainer.clientHeight;
-
-const x = width / RectSize;
-const y = height / RectSize;
-console.log(x, y);
-
-for (let i = 0; i < x; i++) {
-	for (let j = 0; j < y; j++) {
-		const rect = document.createElement('div');
-		rect.dataset.x = i;
-		rect.dataset.y = j;
-		colorsContainer.appendChild(rect);
-	}
-}
-
-function colorRect(data) {
-	const { x, y, color } = data;
-	const rect = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
-	rect.style.backgroundColor = color;
-}
-
-socket.on('color', (data) => {
-	colorRect(data);
-});
-
-colorsContainer.addEventListener('click', (e) => {
-	const rect = e.target;
-	const x = rect.dataset.x;
-	const y = rect.dataset.y;
-	const data = { x, y, color: randomColor() };
-	colorRect(data);
-	socket.emit('color', data);
-});
-
-const randomColor = () => {
-	const letters = '0123456789ABCDEF';
-	let color = '#';
-	for (let i = 0; i < 6; i++) {
-		color += letters[Math.floor(Math.random() * 16)];
-	}
-	return color;
-}
-
-</script>
+	<div class="dialog">
+		<h2>Choose A Role</h2>
+		<button id="leader">Leader</button>
+		<button id="playerX">Player X</button>
+		<button id="playerY">Player Y</button>
+	</div>
+<script src="index.js"></script>
 </body>
 </html>

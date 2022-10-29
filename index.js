@@ -1,4 +1,3 @@
-const Datastore = require("nedb-promises");
 const express = require("express");
 const app = express();
 const http = require("http");
@@ -6,37 +5,39 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
 
-let datastore = Datastore.create('./colors.db')
-
 const port = 3000;
 
 app.use(express.json());
 app.use(express.static("public"));
 
-app.get("/api/colors", async (req, res) => {
-	const colors = await datastore.find({});
-	res.json({ data: colors });
-});
+const players = {
+	leader: null,
+	playerX: null,
+	playerY: null,
+};
+const position = { x: 0, y: 0 };
 
-app.post("/api/colors", async (req, res) => {
-	const { color } = req.body;
-	await datastore.insert({ color });
-	res.json({ message: "ok" });
-});
-
-app.delete("/api/colors", async (req, res) => {
-	await datastore.remove({}, { multi: true });
-	res.json({ message: "ok" });
+app.get('/api/online', (req, res) => {
+	res.json({ data: players });
 });
 
 io.on('connection', (socket) => {
-  console.log('a user connected');
+	const { role } = socket.handshake.query;
+
+  console.log('a user connected', role);
+	players[role] = true;
 	socket.on('disconnect', () => {
-    console.log('user disconnected');
+		players[role] = false;
+    console.log('user disconnected', role);
   });
 
-	socket.on('color', (msg) => {
-    socket.broadcast.emit('color', msg);
+	socket.on('cmd', (msg) => {
+		const { x = 0, y = 0, draw = false } = msg;
+		position.x += x;
+		position.y += y;
+		console.log(msg, { position, draw });
+    // socket.broadcast.emit('cmd', { position, draw });
+		io.emit('cmd', { position, draw });
   });
 });
 
