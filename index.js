@@ -22,13 +22,17 @@ app.get('/api/online', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-	const { role } = socket.handshake.query;
-
-  console.log('a user connected', role);
-	players[role] = true;
+  console.log('a user connected');
+	let role;
+	socket.on('role', (data) => {
+		role = data.role;
+		players[role] = true;
+		socket.broadcast.emit('role', players);
+	});
 	socket.on('disconnect', () => {
 		players[role] = false;
-    console.log('user disconnected', role);
+		socket.broadcast.emit('role', players);
+    console.log('user disconnected');
   });
 
 	socket.on('cmd', (msg) => {

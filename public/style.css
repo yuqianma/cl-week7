@@ -7,6 +7,24 @@ body {
 	align-items: center;
 }
 
+#canvas-container {
+	position: relative;
+}
+
+canvas {
+  display: block;
+}
+
+#reference {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 1;
+	color: #fff;
+}
+
 .dialog {
 	width: 30vw;
 	height: 30vh;
@@ -17,6 +35,7 @@ body {
 	top: 50vh;
 	transform: translate(-50%, -50%);
 	background-color: rgba(0, 0, 0, 0.1);
+	backdrop-filter: blur(5px);
 	display: flex;
 	flex-direction:column;
 	justify-content: center;
